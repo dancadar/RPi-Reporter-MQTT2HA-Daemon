@@ -252,8 +252,16 @@ discovery_prefix = config['MQTT'].get(
 min_interval_in_minutes = 1
 max_interval_in_minutes = 30
 default_interval_in_minutes = 5
+default_interval_in_seconds = 0 # disabled
 interval_in_minutes = config['Daemon'].getint(
     'interval_in_minutes', default_interval_in_minutes)
+interval_in_seconds = config['Daemon'].getint(
+    'interval_in_seconds', default_interval_in_seconds)
+
+if interval_in_seconds == 0:
+    timer_interval = interval_in_minutes * 60
+else:
+    timer_interval = interval_in_seconds
 
 # check our RPi pending-updates every 4 hours
 min_check_interval_in_hours = 2
@@ -1524,12 +1532,11 @@ def startPeriodTimer():
     global endPeriodTimer
     global periodTimeRunningStatus
     stopPeriodTimer()
-    endPeriodTimer = threading.Timer(
-        interval_in_minutes * 60.0, periodTimeoutHandler)
+    endPeriodTimer = threading.Timer(timer_interval, periodTimeoutHandler)
     endPeriodTimer.start()
     periodTimeRunningStatus = True
     print_line(
-        '- started PERIOD timer - every {} seconds'.format(interval_in_minutes * 60.0), debug=True)
+        '- started PERIOD timer - every {} seconds'.format(timer_interval), debug=True)
 
 
 def stopPeriodTimer():
@@ -1546,8 +1553,7 @@ def isPeriodTimerRunning():
 
 
 # our TIMER
-endPeriodTimer = threading.Timer(
-    interval_in_minutes * 60.0, periodTimeoutHandler)
+endPeriodTimer = threading.Timer(timer_interval, periodTimeoutHandler)
 # our BOOL tracking state of TIMER
 periodTimeRunningStatus = False
 reported_first_time = False
@@ -1669,7 +1675,7 @@ def send_status(timestamp, nothing):
 
     rpiData[K_RPI_SCRIPT] = rpi_mqtt_script.replace('.py', '')
     rpiData[K_RPI_SCRIPT_VERSIONS] = ','.join(daemon_version_list)
-    rpiData[SCRIPT_REPORT_INTERVAL] = interval_in_minutes
+    rpiData[SCRIPT_REPORT_INTERVAL] = timer_interval
 
     rpiTopDict = OrderedDict()
     rpiTopDict[K_LD_PAYLOAD_NAME] = rpiData

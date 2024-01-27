@@ -11,7 +11,8 @@
 #enabled = true
 
 # This script reports RPi values at a fixed interval in minutes [2-30], [Default: 5]
-#interval_in_minutes = 5
+interval_in_minutes = 1
+interval_in_seconds = 15
 
 # This script checks for pending os updates at a fixed internal in hours [2-24], [Default: 4]
 #check_updates_in_hours = 4
